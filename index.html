@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>恶魔五月哭 · 意义不明循环祭坛</title>
+<style>
+  :root{
+    --pink:#ff2bd6; --cyan:#00f0ff; --lime:#b6ff00; --red:#ff004c; --ink:#eaeaea; --dim:#7b7b8a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:#050507; color:var(--ink); overflow:hidden;
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    cursor:crosshair;
+  }
+  /* ---------- 启动门 ---------- */
+  #gate{
+    position:fixed; inset:0; z-index:200; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:22px; text-align:center;
+    background:radial-gradient(circle at 50% 40%, #1a0b1e 0%, #050507 65%);
+    padding:24px;
+  }
+  #gate .kicker{font-size:13px; letter-spacing:.5em; color:var(--cyan); text-shadow:0 0 12px var(--cyan)}
+  #gate h1{
+    margin:0; font-size:clamp(26px,5vw,54px); letter-spacing:.08em; line-height:1.2;
+    color:#fff; text-shadow:3px 0 var(--pink), -3px 0 var(--cyan), 0 0 30px rgba(255,43,214,.7);
+    animation:jitter 2.4s infinite steps(2);
+  }
+  #gate p{margin:0; max-width:640px; color:var(--dim); font-size:14px; line-height:1.9}
+  #gate .fine{font-size:12px; color:#555}
+  #enter{
+    margin-top:8px; padding:16px 42px; border:2px solid var(--pink); border-radius:999px;
+    background:transparent; color:#fff; font-size:19px; letter-spacing:.2em; cursor:pointer;
+    text-shadow:0 0 18px var(--pink); box-shadow:0 0 24px rgba(255,43,214,.5), inset 0 0 24px rgba(255,43,214,.18);
+    transition:transform .15s ease, background .2s ease;
+    animation:pulse 1.6s infinite;
+  }
+  #enter:hover{transform:scale(1.06); background:rgba(255,43,214,.15)}
+  #gate .warn{color:var(--red); font-size:12px; letter-spacing:.12em}
+  @keyframes jitter{0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-1px)}50%{transform:translate(-2px,1px)}75%{transform:translate(1px,2px)}}
+  @keyframes pulse{0%,100%{box-shadow:0 0 18px rgba(255,43,214,.35), inset 0 0 18px rgba(255,43,214,.12)}50%{box-shadow:0 0 46px rgba(255,43,214,.85), inset 0 0 34px rgba(255,43,214,.3)}}
+
+  /* ---------- 舞台 ---------- */
+  #stage{position:fixed; inset:0; overflow:hidden; display:none}
+  #stage.on{display:block}
+  #bgTiles{position:absolute; inset:0; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); gap:2px; opacity:.32; filter:saturate(1.6) contrast(1.2)}
+  #bgTiles canvas{width:100%; height:100%; display:block; mix-blend-mode:screen; opacity:.7}
+  #videoWrap{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:6vh 4vw;
+  }
+  #videoWrap video{
+    width:min(92vw, calc(78vh * 1.3555)); height:auto; max-height:82vh;
+    border:1px solid rgba(255,255,255,.14);
+    box-shadow:0 0 40px rgba(255,43,214,.35), 0 0 120px rgba(0,240,255,.18), 0 0 220px rgba(0,0,0,.9);
+    background:#000; transform-origin:center;
+    animation:hue 14s linear infinite;
+    transition:transform .25s ease;
+  }
+  @keyframes hue{0%{filter:hue-rotate(0deg) saturate(1.05) contrast(1.02)}50%{filter:hue-rotate(24deg) saturate(1.25) contrast(1.08)}100%{filter:hue-rotate(0deg) saturate(1.05) contrast(1.02)}}
+  #videoWrap video.mirror{transform:scaleX(-1)}
+  #videoWrap video.shake{animation:buzz .12s linear 3}
+  @keyframes buzz{0%{translate:0 0}33%{translate:-8px 4px}66%{translate:7px -5px}100%{translate:0 0}}
+
+  #scan{position:absolute; inset:0; pointer-events:none; z-index:5;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply; opacity:.5}
+  #vig{position:absolute; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(circle at 50% 50%, transparent 45%, rgba(0,0,0,.85) 100%)}
+  #flicker{position:absolute; inset:0; pointer-events:none; z-index:6; background:#fff; opacity:0; mix-blend-mode:overlay; animation:flick 5.7s infinite}
+  @keyframes flick{0%,93%,100%{opacity:0}94%{opacity:.08}95%{opacity:0}96%{opacity:.12}97%{opacity:0}}
+
+  /* ---------- 跑马灯 ---------- */
+  .marquee{position:absolute; left:0; right:0; z-index:9; overflow:hidden; white-space:nowrap;
+    font-size:13px; letter-spacing:.28em; color:var(--cyan); text-shadow:0 0 10px var(--cyan);
+    border-top:1px solid rgba(0,240,255,.2); border-bottom:1px solid rgba(0,240,255,.2);
+    background:rgba(0,0,0,.55); padding:5px 0; pointer-events:none}
+  .marquee span{display:inline-block; padding-left:100%; animation:slide 26s linear infinite}
+  #marqueeTop{top:0}
+  #marqueeBottom{bottom:0; color:var(--pink); text-shadow:0 0 10px var(--pink); border-color:rgba(255,43,214,.25)}
+  #marqueeBottom span{animation-duration:19s; animation-direction:reverse}
+  @keyframes slide{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute; top:44px; left:18px; z-index:12; font-family:ui-monospace,Consolas,monospace; font-size:12px; line-height:1.9; color:var(--lime); text-shadow:0 0 8px rgba(182,255,0,.6); pointer-events:none}
+  #hud b{color:#fff; font-weight:600}
+  #hud .bar{position:relative; width:190px; height:8px; border:1px solid rgba(182,255,0,.5); margin-top:4px; overflow:hidden}
+  #hud .bar i{position:absolute; inset:0; width:98.7%; background:linear-gradient(90deg,var(--lime),var(--cyan)); animation:bar 3.2s infinite}
+  @keyframes bar{0%,100%{width:97.2%}50%{width:99.4%}}
+  #hud .tip{color:var(--dim); text-shadow:none; font-size:11px}
+
+  /* ---------- 按钮 ---------- */
+  #controls{position:absolute; right:16px; bottom:40px; z-index:14; display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
+  #controls button{
+    background:rgba(10,10,14,.72); color:var(--ink); border:1px solid rgba(255,255,255,.22);
+    padding:8px 14px; border-radius:8px; font-size:12px; letter-spacing:.08em; cursor:pointer;
+    backdrop-filter:blur(4px);
+  }
+  #controls button:hover{border-color:var(--pink); color:#fff; box-shadow:0 0 14px rgba(255,43,214,.4)}
+  #controls button.on{border-color:var(--lime); color:var(--lime); box-shadow:0 0 14px rgba(182,255,0,.35)}
+
+  /* ---------- 漂浮文本 / 提示 ---------- */
+  #texts{position:absolute; inset:0; z-index:8; pointer-events:none; overflow:hidden}
+  .memeText{position:absolute; font-weight:800; white-space:nowrap; opacity:0; animation:floatUp linear forwards; text-shadow:0 0 14px currentColor}
+  @keyframes floatUp{0%{opacity:0; transform:translateY(26px) rotate(var(--rot)) scale(.9)}12%{opacity:.9}78%{opacity:.75}100%{opacity:0; transform:translateY(-160px) rotate(var(--rot)) scale(1.05)}}
+  #toasts{position:absolute; right:16px; top:44px; z-index:13; display:flex; flex-direction:column; gap:8px; align-items:flex-end; pointer-events:none}
+  .toast{background:rgba(6,6,10,.82); border:1px solid rgba(0,240,255,.35); color:#dff; padding:8px 14px; border-radius:8px; font-size:12px; letter-spacing:.06em; box-shadow:0 0 16px rgba(0,240,255,.18); animation:toastIn .3s ease, toastOut .5s ease 3.6s forwards; max-width:min(78vw,420px)}
+  @keyframes toastIn{from{opacity:0; transform:translateX(30px)}to{opacity:1; transform:none}}
+  @keyframes toastOut{to{opacity:0; transform:translateY(-8px)}}
+
+  /* ---------- 全页故障 ---------- */
+  body.glitch #videoWrap{animation:glitchShift .18s steps(2) infinite}
+  body.glitch #stage::after{
+    content:""; position:absolute; inset:0; z-index:15; pointer-events:none;
+    background:linear-gradient(90deg, rgba(255,0,76,.18), transparent 30%, rgba(0,240,255,.18) 70%, transparent);
+    mix-blend-mode:screen; animation:glitchBars .2s steps(2) infinite;
+  }
+  @keyframes glitchShift{0%{transform:translate(0,0)}50%{transform:translate(-14px,6px) skewX(1.5deg)}100%{transform:translate(10px,-8px)}}
+  @keyframes glitchBars{0%{clip-path:inset(0 0 62% 0)}50%{clip-path:inset(48% 0 20% 0)}100%{clip-path:inset(12% 0 74% 0)}}
+  body.glitch #gate h1{animation-duration:.4s}
+
+  /* ---------- 模式标签 ---------- */
+  #modeBadge{position:absolute; left:18px; bottom:40px; z-index:12; font-family:ui-monospace,Consolas,monospace; font-size:11px; letter-spacing:.2em; color:var(--dim); pointer-events:none}
+  #modeBadge em{color:var(--pink); font-style:normal}
+
+  @media (max-width:720px){
+    #hud{font-size:10px; top:36px; left:10px}
+    #hud .bar{width:140px}
+    #controls{flex-direction:column; align-items:flex-end; gap:6px; right:8px; bottom:48px}
+    #controls button{font-size:11px; padding:7px 12px}
+    #modeBadge{display:none}
+    #toasts{top:auto; bottom:150px; right:8px}
+    .marquee{font-size:10px}
+    #videoWrap{padding:9vh 3vw}
+  }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="kicker">⚠ 意义不明协议 v4.7 ⚠</div>
+  <h1>恶魔五月哭<br>循环祭坛</h1>
+  <p>本页面将反复播放一段 AI 生成的但丁短剧。<br>它有声音。它有歌单。它没有意义。</p>
+  <p class="warn">本页会发出声音，请先确认音量。</p>
+  <button id="enter">进 入 非 常 中 国 的 时 间</button>
+  <p class="fine">点击后开始播放 · 建议戴耳机 · 空格暂停 / F 全屏 / G 鬼畜模式</p>
+</div>
+
+<div id="stage">
+  <div id="bgTiles">
+    <canvas></canvas><canvas></canvas><canvas></canvas>
+    <canvas></canvas><canvas></canvas><canvas></canvas>
+  </div>
+
+  <div id="videoWrap">
+    <video id="v" src="dante.mp4" loop playsinline preload="auto" muted></video>
+  </div>
+
+  <div id="scan"></div>
+  <div id="vig"></div>
+  <div id="flicker"></div>
+
+  <div class="marquee" id="marqueeTop"><span>ANYWAY · YOU FOUND MY PLAYLIST AT A VERY CHINESE TIME IN YOUR LIFE · MUSIC SO GOOD · EVEN A DEVIL MAY CRY · 但丁真是中国人 · 47 TRACKS · NO SKIPS · 非法音乐品味 · 给我五分钟 ·&nbsp;</span></div>
+  <div class="marquee" id="marqueeBottom"><span>恶魔正在哭泣 · VERY CHINESE TIME · 你已经是了 · JACK! · BIEN GRACIAS Y TU · 大病区出品 · 这一次轮回也会很好听 ·&nbsp;</span></div>
+
+  <div id="hud">
+    <div>意义不明指数 <b id="hNonsense">0</b></div>
+    <div>恶魔哭泣 <b id="hCry">0</b> 次</div>
+    <div>歌单被收藏 <b id="hFav">0</b> 次</div>
+    <div>第 <b id="hLoop">1</b> 次轮回</div>
+    <div class="tip">歌单加载中</div>
+    <div class="bar"><i></i></div>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="texts"></div>
+
+  <div id="modeBadge">MODE: <em id="modeLabel">温顺循环</em> · SPACE 暂停 · F 全屏</div>
+
+  <div id="controls">
+    <button id="btnFull">全屏</button>
+    <button id="btnChaos">鬼畜模式</button>
+    <button id="btnPause">暂停</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const gate = document.getElementById('gate');
+  const stage = document.getElementById('stage');
+  const v = document.getElementById('v');
+  const wrap = document.getElementById('videoWrap');
+  const canvases = [...document.querySelectorAll('#bgTiles canvas')];
+  const texts = document.getElementById('texts');
+  const toasts = document.getElementById('toasts');
+
+  const MEME = [
+    'Anyway, you found my playlist at a very Chinese time in your life',
+    'Music so good, even a devil may cry',
+    '但丁真是中国人',
+    '你已经是了',
+    '47 tracks, no skips, no weakness',
+    '非法音乐品味',
+    '给我五分钟',
+    'Bien gracias y tu?',
+    'Jack!',
+    'Very Chinese Time',
+    '恶魔正在哭泣',
+    '大病区出品',
+    '我是中国人。非常。'
+  ];
+  const TOASTS = [
+    '⚠ 检测到你人生中非常中国的时间',
+    '✅ 已自动收藏歌单（不可取消）',
+    '😈 恶魔哭泣次数 +1',
+    '📻 正在播放：Outsider House',
+    '🧠 意义不明指数上升中',
+    '🇨🇳 国籍申报：中国（非常）',
+    '🎧 歌单已加载 99%……99%……99%',
+    '🕯 祭坛运转正常'
+  ];
+  const COLORS = ['#ff2bd6','#00f0ff','#b6ff00','#ff004c','#ffd400','#ffffff'];
+
+  let started = false;
+  let chaos = false;
+  let nonsense = 0, cry = 0, fav = 0, loops = 1;
+  let lastT = 0;
+  let chaosTimer = null, glitchTimer = null, textTimer = null, toastTimer = null;
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------- 启动 ----------
+  function start(){
+    if (started) return;
+    started = true;
+    gate.style.display = 'none';
+    stage.classList.add('on');
+    v.muted = false;
+    v.volume = 1;
+    const p = v.play();
+    if (p && p.catch) p.catch(() => {
+      // 某些浏览器仍拦截：退回到静音播放，提示再点一下
+      v.muted = true;
+      v.play();
+      toast('🔇 浏览器拦截了声音：点一下画面恢复音量');
+    });
+    nonsenseUp(47);
+    loopTimers();
+    startCanvas();
+    spawnMeme(6);
+    toast('🕯 祭坛已启动：你进入了一个非常中国的时间');
+  }
+
+  function loopTimers(){
+    clearInterval(chaosTimer); clearInterval(glitchTimer); clearInterval(textTimer); clearInterval(toastTimer);
+    // 鬼畜模式：随机跳段、变速、镜像
+    chaosTimer = setInterval(() => {
+      if (!chaos || v.paused) return;
+      if (Math.random() < 0.55){
+        v.currentTime = 25 + Math.random() * (Math.max(1, v.duration - 40));
+        v.playbackRate = 0.8 + Math.random() * 0.55;
+      } else {
+        v.playbackRate = Math.random() < 0.5 ? 1 : (0.9 + Math.random() * 0.3);
+      }
+      if (Math.random() < 0.35) {
+        v.classList.toggle('mirror');
+        setTimeout(() => v.classList.remove('mirror'), 1200 + Math.random()*2000);
+      }
+      if (Math.random() < 0.3) {
+        v.classList.add('shake');
+        setTimeout(() => v.classList.remove('shake'), 400);
+      }
+      nonsenseUp(1 + Math.floor(Math.random()*9));
+    }, 5200);
+    // 全页故障
+    glitchTimer = setInterval(() => {
+      if (Math.random() < 0.6){
+        document.body.classList.add('glitch');
+        setTimeout(() => document.body.classList.remove('glitch'), 120 + Math.random()*240);
+      }
+    }, 6500);
+    // 漂浮文字
+    textTimer = setInterval(() => {
+      if (Math.random() < 0.8) spawnMeme(1 + Math.floor(Math.random()*2));
+    }, 1100);
+    // 提示
+    toastTimer = setInterval(() => {
+      if (Math.random() < 0.7) toast(TOASTS[Math.floor(Math.random()*TOASTS.length)]);
+    }, 5200);
+
+    // 计数
+    setInterval(() => {
+      nonsenseUp(1);
+      if (Math.random() < 0.25) { cry += 1 + Math.floor(Math.random()*3); $('hCry').textContent = cry; }
+      if (Math.random() < 0.2) { fav += 1; $('hFav').textContent = fav; }
+    }, 900);
+  }
+
+  function nonsenseUp(n){
+    nonsense += n;
+    $('hNonsense').textContent = nonsense;
+  }
+
+  // ---------- 视频事件 ----------
+  v.addEventListener('timeupdate', () => {
+    if (v.currentTime < lastT - 3){
+      loops += 1;
+      $('hLoop').textContent = loops;
+      nonsenseUp(11);
+      if (loops % 3 === 0) toast('🔁 第 ' + loops + ' 次轮回：但丁依然觉得自己是中国人');
+    }
+    lastT = v.currentTime;
+  });
+  v.addEventListener('click', () => {
+    if (v.muted) { v.muted = false; v.volume = 1; v.play().catch(() => {}); toast('🔊 音量已恢复'); }
+    nonsenseUp(23); spawnMeme(4);
+  });
+  v.addEventListener('error', () => {
+    stage.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#ff2bd6;font-size:18px;text-align:center;padding:24px">' +
+      '<div>⚠ 视频加载失败</div><div style="font-size:13px;color:#888">请确认 dante.mp4 与 index.html 在同一目录结构中（../dante.mp4）</div></div>';
+  });
+
+  // ---------- 漂浮文字 ----------
+  function spawnMeme(n){
+    for (let i=0;i<n;i++){
+      const el = document.createElement('div');
+      el.className = 'memeText';
+      el.textContent = MEME[Math.floor(Math.random()*MEME.length)];
+      const size = 12 + Math.random()*Math.min(44, 14 + nonsense/90);
+      el.style.left = (Math.random()*88 + 2) + 'vw';
+      el.style.top = (Math.random()*78 + 8) + 'vh';
+      el.style.fontSize = size + 'px';
+      el.style.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+      el.style.setProperty('--rot', (Math.random()*34 - 17) + 'deg');
+      el.style.animationDuration = (5 + Math.random()*5) + 's';
+      el.style.opacity = 0;
+      texts.appendChild(el);
+      setTimeout(() => el.remove(), 10500);
+    }
+    // 控制数量，防止卡顿
+    while (texts.children.length > 40) texts.firstChild.remove();
+  }
+
+  // ---------- 提示 ----------
+  function toast(msg){
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    toasts.appendChild(el);
+    setTimeout(() => el.remove(), 4600);
+    while (toasts.children.length > 5) toasts.firstChild.remove();
+  }
+
+  // ---------- 背景画布：消耗主视频的画面 ----------
+  function startCanvas(){
+    const ctxs = canvases.map(c => {
+      const r = c.getBoundingClientRect();
+      c.width = Math.max(2, Math.floor(r.width * (window.devicePixelRatio || 1) * 0.6));
+      c.height = Math.max(2, Math.floor(r.height * (window.devicePixelRatio || 1) * 0.6));
+      return c.getContext('2d');
+    });
+    let frame = 0;
+    const tick = () => {
+      frame++;
+      if (v.readyState >= 2 && frame % 2 === 0){
+        ctxs.forEach((ctx, i) => {
+          const c = canvases[i];
+          if (!c.width) return;
+          ctx.save();
+          ctx.clearRect(0, 0, c.width, c.height);
+          const zoom = 1.4 + Math.sin((frame + i * 30) / 90) * 0.4;
+          const sw = v.videoWidth, sh = v.videoHeight;
+          if (!sw || !sh) { ctx.restore(); return; }
+          const dw = c.width * zoom, dh = c.height * zoom;
+          const dx = (c.width - dw) / 2 + Math.sin((frame + i*17)/60) * c.width * .18;
+          const dy = (c.height - dh) / 2 + Math.cos((frame + i*23)/70) * c.height * .18;
+          ctx.globalAlpha = 0.85;
+          ctx.filter = 'hue-rotate(' + ((i * 55 + frame * 2) % 360) + 'deg) saturate(1.8) contrast(1.3)';
+          ctx.drawImage(v, dx, dy, dw, dh);
+          ctx.restore();
+        });
+      }
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }
+
+  // ---------- 控制 ----------
+  $('enter').addEventListener('click', start);
+  window.addEventListener('keydown', (e) => {
+    if (!started && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); start(); return; }
+    if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+    if (e.key === 'f' || e.key === 'F') toggleFull();
+    if (e.key === 'g' || e.key === 'G') toggleChaos();
+  });
+
+  function togglePause(){
+    if (!started) return;
+    if (v.paused) { v.play(); $('btnPause').textContent = '暂停'; }
+    else { v.pause(); $('btnPause').textContent = '继续'; }
+  }
+  function toggleFull(){
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+  function toggleChaos(){
+    chaos = !chaos;
+    $('btnChaos').classList.toggle('on', chaos);
+    $('modeLabel').textContent = chaos ? '意义不明（鬼畜）' : '温顺循环';
+    if (!chaos){ v.playbackRate = 1; v.classList.remove('mirror'); }
+    toast(chaos ? '🌀 鬼畜模式：歌单开始随机跳针' : '🍃 已恢复温顺循环');
+  }
+  $('btnPause').addEventListener('click', togglePause);
+  $('btnFull').addEventListener('click', toggleFull);
+  $('btnChaos').addEventListener('click', toggleChaos);
+
+  // 页面打开时先静音循环，点击门后有声
+  v.play().catch(() => {});
+  // 调试/展示用：?auto=1 跳过启动门（仍需浏览器允许声音）
+  if (new URLSearchParams(location.search).has('auto')) start();
+})();
+</script>
+</body>
+</html>
